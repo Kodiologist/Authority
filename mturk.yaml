@@ -1,0 +1,21 @@
+title: Social Judgment
+
+description: Make judgments about a few social issues. The task should take less than 5 minutes.
+
+keywords:
+- experiment
+- psychology
+- decision-making
+- judgment
+
+reward: 0.10
+duration: 20 min
+
+qualifications:
+- PercentAssignmentsApproved > 90
+- Locale == US
+
+question_frame_height: 450
+
+lifetime: 7 d
+approval_delay: 14 d

@@ -1,0 +1,125 @@
+#!/usr/bin/perl -T
+
+my %p;
+%p = @ARGV; s/,\z// foreach values %p; # DEPLOYMENT SCRIPT EDITS THIS LINE
+
+#use warnings; BEGIN {@ARGV or open STDERR, '>', '/tmp/cgi-error.txt' or die};
+use strict;
+
+use Tversky 'cat', 'htmlsafe';
+
+# ------------------------------------------------
+# Declarations
+# ------------------------------------------------
+
+sub text ($) { '<p class="long">' . $_[0] . '</p>' }
+
+# ------------------------------------------------
+# Mainline code
+# ------------------------------------------------
+
+my $o = new Tversky
+   (cookie_name_suffix => 'Authority',
+    here_url => $p{here_url},
+    database_path => $p{database_path},
+    consent_path => $p{consent_path},
+    task => $p{task},
+
+    # preview => ...,
+
+    after_consent_prep => sub
+       {my $o = shift;
+        $o->randomly_assign('can_protect_kids', 'No', 'Yes');},
+
+    head => do {local $/; <DATA>},
+    footer => "\n\n\n</body></html>\n",
+
+    mturk => $p{mturk},
+    assume_consent => $p{assume_consent},
+    password_hash => $p{password_hash},
+    password_salt => $p{password_salt});
+
+$o->run(sub
+
+   {if ($o->getu('can_protect_kids') eq 'Yes')
+       {$o->yesno_page('punish_noncarders',
+            cat
+                text q{Suppose a legislature is considering a bill that would greatly increase penalties to businesses who sell alcoholic beverages without checking the age of the buyer. A committee, after reviewing published research and performing original statistical analyses of communities that passed comparable laws, estimates that the bill would reduce drunk driving-related injuries among teenagers by 24%.},
+                text 'Would you support the bill?');}
+    
+    $o->multiple_choice_page('open_container_fine',
+        cat
+           (text q{Suppose a 31-year-old man is arrested for driving with an open can of beer, violating a local open-container law. His blood alcohol content is .02%, which is below the legal limit. He has no criminal record.},
+            text q{How much should the man be fined? Answer according to what you personally feel is appropriate, not what you think is standard.}),
+        '0' => 'Nothing (let him off with a warning)',
+        '1' => '$20',
+        '2' => '$50',
+        '3' => '$70',
+        '4' => '$100',
+        '5' => '$200',
+        '6' => '$500',
+        '7' => '$1,000',
+        '8' => 'More than $1,000');
+
+    $o->multiple_choice_page('drinking_age',
+        q(<p>What do you think the drinking age should be?</p>),
+        0 => q(There shouldn't be a drinking age.),
+        1 => 'Less than 18',
+        2 => '18',
+        3 => 'Greater than 18 but less than 21',
+        4 => '21',
+        5 => 'Greater than 21',
+        6 => 'Drinking should be outlawed entirely.');
+
+    $o->buttons_page('gender',
+        q(<p>Okay, now for a few demographic questions and you're done.</p>) .
+            '<p>Are you male or female?</p>',
+        'Male', 'Female');
+    $o->nonneg_int_entry_page('age',
+        '<p>How old are you?</p>');
+
+    $o->text_entry_page('comments',
+        sprintf('<p><strong>Optional:</strong> Comments on this study. (If you want a reply, <a href="mailto:%s@%s">email me</a> instead.)</p>',
+            htmlsafe $p{email_user},
+            htmlsafe $p{email_domain}),
+        multiline => 1,
+        accept_blank => 1,
+        max_chars => 7 * 500);});
+
+__DATA__
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Social Judgment</title>
+
+<style type="text/css">
+
+    h1, form, div.expbody p
+       {text-align: center;}
+
+    div.expbody p.long
+       {text-align: left;}
+
+    input.consent_statement
+       {border: thin solid black;
+        background-color: white;
+        color: black;
+        margin-bottom: .5em;}
+
+    div.multiple_choice_box
+       {display: table;
+        margin-left: auto; margin-right: auto;}
+    div.multiple_choice_box > div.row
+       {display: table-row;}
+    div.multiple_choice_box > div.row > div
+       {display: table-cell;}
+    div.multiple_choice_box > div.row > div.button
+       {padding-right: 1em;
+        vertical-align: middle;}
+    div.multiple_choice_box > div.row > div.body
+       {text-align: left;
+        vertical-align: middle;}
+
+    textarea.text_entry
+       {width: 90%;}
+
+</style>
