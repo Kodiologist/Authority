@@ -44,7 +44,7 @@ $o->run(sub
    {if ($o->getu('can_protect_kids') eq 'Yes')
        {$o->yesno_page('punish_noncarders',
             cat
-                text q{Suppose a legislature is considering a bill that would greatly increase penalties to businesses who sell alcoholic beverages without checking the age of the buyer. A committee, after reviewing published research and performing original statistical analyses of communities that passed comparable laws, estimates that the bill would reduce drunk driving-related injuries among teenagers by 24%.},
+                text q{Suppose a legislature is considering a bill that would greatly increase penalties to businesses who sell tobacco without checking the age of the buyer. A committee, after reviewing published research and performing original statistical analyses of communities that passed comparable laws, estimates that the bill would reduce the smoking rate among teenagers by 14 percentage points.},
                 text 'Would you support the bill?');}
     
     $o->multiple_choice_page('open_container_fine',
