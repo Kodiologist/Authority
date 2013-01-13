@@ -1,12 +1,13 @@
-title: Social Judgment
+title: Media Judgment
 
-description: Make judgments about a few social issues. The task should take less than 5 minutes.
+description: Answer some questions about media bias. The task should take less than 5 minutes.
 
 keywords:
 - experiment
 - psychology
 - decision-making
 - judgment
+- media
 
 reward: 0.10
 duration: 20 min

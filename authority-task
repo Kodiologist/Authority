@@ -12,13 +12,24 @@ use Tversky 'cat', 'htmlsafe';
 # Declarations
 # ------------------------------------------------
 
+my $o;
+
 sub text ($) { '<p class="long">' . $_[0] . '</p>' }
+
+sub probability_judgment
+   {my ($key, $str) = @_;
+    $o->image_button_page($key,
+        cat(text $str,
+           '<p>Answer the question by clicking (as precisely as you can) at the appropriate point on the bar.'),
+        image_url => $p{response_bar_image_url},
+        alt => '[Response scale]',
+        anchors => ['impossible', 'certain']);}
 
 # ------------------------------------------------
 # Mainline code
 # ------------------------------------------------
 
-my $o = new Tversky
+$o = new Tversky
    (cookie_name_suffix => 'Authority',
     here_url => $p{here_url},
     database_path => $p{database_path},
@@ -29,59 +40,55 @@ my $o = new Tversky
 
     after_consent_prep => sub
        {my $o = shift;
-        $o->randomly_assign('can_protect_kids', 'No', 'Yes');},
+        $o->randomly_assign('can_censor', 'No', 'Yes');},
 
     head => do {local $/; <DATA>},
     footer => "\n\n\n</body></html>\n",
 
     mturk => $p{mturk},
+    mturk_prompt_new_window => 1,
+      # Works around a bug in IE concerning frames and image inputs.
     assume_consent => $p{assume_consent},
     password_hash => $p{password_hash},
     password_salt => $p{password_salt});
 
 $o->run(sub
 
-   {if ($o->getu('can_protect_kids') eq 'Yes')
-       {$o->yesno_page('punish_noncarders',
-            cat
-                text q{Suppose a legislature is considering a bill that would greatly increase penalties to businesses who sell tobacco without checking the age of the buyer. A committee, after reviewing published research and performing original statistical analyses of communities that passed comparable laws, estimates that the bill would reduce the smoking rate among teenagers by 14 percentage points.},
-                text 'Would you support the bill?');}
-    
-    $o->multiple_choice_page('open_container_fine',
-        cat
-           (text q{Suppose a 31-year-old man is arrested for driving with an open can of beer, violating a local open-container law. His blood alcohol content is .02%, which is below the legal limit. He has no criminal record.},
-            text q{How much should the man be fined? Answer according to what you personally feel is appropriate, not what you think is standard.}),
-        '0' => 'Nothing (let him off with a warning)',
-        '1' => '$20',
-        '2' => '$50',
-        '3' => '$70',
-        '4' => '$100',
-        '5' => '$200',
-        '6' => '$500',
-        '7' => '$1,000',
-        '8' => 'More than $1,000');
+   {$o->okay_page('film_description', cat
+        text q{Hi, I'm Kodi, the guy who designed the study you're in now. A few months from now, I'm going to run a new psychology experiment about prejudice. It'll be large-scale, with at least 200 subjects. I want your help developing the materials for that study. All you need to do is answer a few questions.},
+        text q{A key part of the study is that subjects will watch a short film, "Spotless", that's supposedly a documentary about albinism, the condition of being albino. The film argues, with a combination of interviews and discussion of scientific research, that albino people are less intelligent and more violent than non-albino people. In reality, the evidence that the movie relies on is totally made up, and I'll admit that to subjects at the end of the experiment. What testing I've done so far, though, suggests that the movie is surprisingly convincing. In fact, I'm somewhat worried that even after I tell subjects the truth, they'll still have some residual unconscious belief in the ideas advanced by the movie! You see, previous experiments have shown that even when people are told that some information they're receiving is false, they may misremember it as true later on. Of course, I don't want to actually increase prejudice towards albino people in real life.});
 
-    $o->multiple_choice_page('drinking_age',
-        q(<p>What do you think the drinking age should be?</p>),
-        0 => q(There shouldn't be a drinking age.),
-        1 => 'Less than 18',
-        2 => '18',
-        3 => 'Greater than 18 but less than 21',
-        4 => '21',
-        5 => 'Greater than 21',
-        6 => 'Drinking should be outlawed entirely.');
+    if ($o->getu('can_censor') eq 'Yes')
+       {$o->yesno_page('should_censor',
+            text q{One idea I have is to replace this film about albinism with a film about an entirely fictitious disease. The experiment as a whole should still basically work. Do you think I should do this?});}
+
+    probability_judgment 'vuln_subject',
+        q{Now, suppose I'd shown this albinism film to you, without telling you that the evidence was fake beforehand. How likely would the film influence your opinion about albino people, even if only a little?};
+
+    probability_judgment 'vuln_adult',
+        q{Suppose I showed the albinism film to <strong>a typical adult</strong>, again without telling them that the evidence was fake. How likely would the film influence the viewer's opinion about albino people, even if only a little?};
+
+    probability_judgment 'vuln_10yo',
+        q{Suppose I showed the albinism film to <strong>a typical 10-year-old</strong>, again without telling them that the evidence was fake. How likely would the film influence the viewer's opinion about albino people, even if only a little?};
 
     $o->buttons_page('gender',
         q(<p>Okay, now for a few demographic questions and you're done.</p>) .
             '<p>Are you male or female?</p>',
         'Male', 'Female');
+
     $o->nonneg_int_entry_page('age',
         '<p>How old are you?</p>');
 
     $o->text_entry_page('comments',
-        sprintf('<p><strong>Optional:</strong> Comments on this study. (If you want a reply, <a href="mailto:%s@%s">email me</a> instead.)</p>',
-            htmlsafe $p{email_user},
-            htmlsafe $p{email_domain}),
+        cat
+           (text q{The study's over. Allow me to debrief you.},
+            text q{I lied about that study I'll supposedly do in the future. I have no such study planned. Nor does the movie I described exist. Actually, the purpose of this experiment was just to get your perceptions of how susceptible you and other people are to media influence. According to your randomly assigned condition, you were or were not offered an opportunity to censor the film. What I want to find out is how exercising censorship changes people's perceptions of influence susceptibility. Perhaps exercising censorship calls people's attention to the potential dangers of media and thereby increases their perceptions of susceptibility. Or, perhaps exercising censorship makes people complacent about pernicious media influences, because they feel they've done something about the issue.},
+            text q{If you want to learn more about this stuff, see research articles on the <a href="http://en.wikipedia.org/wiki/Third-person_effect">third-person effect</a> (that is, the tendency for people to think they're less influenced by media than other people are), such as Feng and Guo (2012), or see <a href="http://arfer.net/w/vicarious-restraint">my essay on "vicarious restraint"</a>. If you want to learn more about people's capacity for disbelief, see Gilbert, Tafarodi, and Malone (1993). If you want to learn more about albinism, see the National Organization for Albinism and Hypopigmentation's writeup <a href="http://www.albinism.org/publications/what_is_albinism.html">"What Is Albinism?"</a>. Incidentally, I am myself albino.},
+            text q{Feng, G. C., &amp; Guo, S. Z. (2012). Support for censorship: A multilevel meta-analysis of the third-person effect. <cite>Communication Reports, 25</cite>(1), 40–50. doi:10.1080/08934215.2012.661019},
+            text q{Gilbert, D. T., Tafarodi, R. W., &amp; Malone, P. S. (1993). You can't not believe everything you read. <cite>Journal of Personality and Social Psychology, 65</cite>(2), 221–233. doi:10.1037/0022-3514.65.2.221},
+            sprintf text q{<strong>Optional:</strong> Comments on this study. (If you want a reply, <a href="mailto:%s@%s">email me</a> instead.) If you at all suspected deception, please mention that; I wouldn't reject a HIT for that reason, but I need to know that for the purpose of data analysis.},
+                htmlsafe $p{email_user},
+                htmlsafe $p{email_domain}),
         multiline => 1,
         accept_blank => 1,
         max_chars => 7 * 500);});
@@ -89,7 +96,7 @@ $o->run(sub
 __DATA__
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Social Judgment</title>
+<title>Media Judgment</title>
 
 <style type="text/css">
 
@@ -105,19 +112,20 @@ __DATA__
         color: black;
         margin-bottom: .5em;}
 
-    div.multiple_choice_box
-       {display: table;
-        margin-left: auto; margin-right: auto;}
-    div.multiple_choice_box > div.row
-       {display: table-row;}
-    div.multiple_choice_box > div.row > div
-       {display: table-cell;}
-    div.multiple_choice_box > div.row > div.button
-       {padding-right: 1em;
-        vertical-align: middle;}
-    div.multiple_choice_box > div.row > div.body
-       {text-align: left;
-        vertical-align: middle;}
+    button[name = "yesno"]
+      {margin-left: 1em;
+       margin-right: 1em;}
+
+    div.image_button
+      {display: table;
+       margin-left: auto;
+       margin-right: auto;}
+    div.image_button > *
+      {display: table-cell;
+       vertical-align: middle;}
+    div.image_button > img, div.image_button > input
+      {margin-left: 1em;
+       margin-right: 1em;}
 
     textarea.text_entry
        {width: 90%;}
