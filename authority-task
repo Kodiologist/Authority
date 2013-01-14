@@ -23,7 +23,8 @@ sub probability_judgment
            '<p>Answer the question by clicking (as precisely as you can) at the appropriate point on the bar.'),
         image_url => $p{response_bar_image_url},
         alt => '[Response scale]',
-        anchors => ['impossible', 'certain']);}
+        anchors => ['impossible', 'certain'],
+        bump => '30px');}
 
 # ------------------------------------------------
 # Mainline code
