@@ -39,10 +39,6 @@ $o = new Tversky
 
     # preview => ...,
 
-    after_consent_prep => sub
-       {my $o = shift;
-        $o->randomly_assign('can_censor', 'No', 'Yes');},
-
     head => do {local $/; <DATA>},
     footer => "\n\n\n</body></html>\n",
 
@@ -59,7 +55,7 @@ $o->run(sub
         text q{Hi, I'm Kodi, the guy who designed the study you're in now. A few months from now, I'm going to run a new psychology experiment about prejudice. It'll be large-scale, with at least 200 subjects. I want your help developing the materials for that study. All you need to do is answer a few questions.},
         text q{A key part of the study is that subjects will watch a short film, "Spotless", that's supposedly a documentary about albinism, the condition of being albino. The film argues, with a combination of interviews and discussion of scientific research, that albino people are less intelligent and more violent than non-albino people. In reality, the evidence that the movie relies on is totally made up, and I'll admit that to subjects at the end of the experiment. What testing I've done so far, though, suggests that the movie is surprisingly convincing. In fact, I'm somewhat worried that even after I tell subjects the truth, they'll still have some residual unconscious belief in the ideas advanced by the movie! You see, previous experiments have shown that even when people are told that some information they're receiving is false, they may misremember it as true later on. Of course, I don't want to actually increase prejudice towards albino people in real life.});
 
-    if ($o->getu('can_censor') eq 'Yes')
+    if ($o->get_condition('can_censor') eq 'Yes')
        {$o->yesno_page('should_censor',
             text q{One idea I have is to replace this film about albinism with a film about an entirely fictitious disease. The experiment as a whole should still basically work. Do you think I should do this?});}
 
